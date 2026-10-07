@@ -17,13 +17,32 @@ class CityRepository {
         get() = _cities
 
     fun addCity(city: City) {
-        _cities.add(city)
+        citiesRef.document(city.name).set(city)
     }
-
+    fun deleteCity(city: City){
+        citiesRef.document(city.name).delete()
+    }
     fun updateCity(oldCity: City, updatedCity: City) {
-        val index = _cities.indexOf(oldCity)
-        if (index != -1) {
-            _cities[index] = updatedCity
+        if(oldCity.name != updatedCity.name){
+            citiesRef.document(oldCity.name).delete()
+        }
+        citiesRef.document(oldCity.name).set(updatedCity)
+    }
+    init{
+        citiesRef.addSnapshotListener { snapshot, error ->
+            if(error != null){
+                return@addSnapshotListener
+            }
+            _cities.clear()
+            snapshot?.documents?.forEach{document ->
+                val city = document.toObject(City::class.java)
+                if(city !=null){
+                    _cities.add(city)
+                }
+            }
+
         }
     }
+
+
 }
